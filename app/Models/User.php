@@ -2,24 +2,21 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Concerns\HasTeams;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'current_team_id', 'role', 'title'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Fillable(['name', 'email', 'password', 'role', 'title'])]
+#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasTeams, HasUuids, Notifiable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, HasUuids, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -29,9 +26,8 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'        => 'datetime',
-            'password'                 => 'hashed',
-            'two_factor_confirmed_at'  => 'datetime',
+            'email_verified_at' => 'datetime',
+            'password'          => 'hashed',
         ];
     }
 
