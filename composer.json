@@ -1,14 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "sk-awards/backend",
+    "name": "laravel/react-starter-kit",
     "type": "project",
-    "description": "Sao Khuê Awards – REST API backend",
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "8.4.0",
+        "inertiajs/inertia-laravel": "^3.0",
+        "laravel/fortify": "^1.34",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.3",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "laravel/wayfinder": "^0.1.14"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
@@ -17,6 +24,7 @@
         "laravel/sail": "^1.53",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9.3",
+        "nunomaduro/pao": "^1.0.3",
         "pestphp/pest": "^4.6",
         "pestphp/pest-plugin-laravel": "^4.1"
     },
@@ -37,17 +45,26 @@
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
-            "@php artisan migrate --force"
+            "@php artisan migrate --force",
+            "npm install",
+            "npm run build"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "php artisan serve"
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names='server,queue,vite'"
         ],
         "lint": [
             "pint --parallel"
         ],
         "lint:check": [
             "pint --parallel --test"
+        ],
+        "ci:check": [
+            "Composer\\Config::disableProcessTimeout",
+            "npm run lint:check",
+            "npm run format:check",
+            "npm run types:check",
+            "@test"
         ],
         "test": [
             "@php artisan config:clear --ansi",
