@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: sk-awards-api
+    runtime: docker
+    plan: starter          # upgrade to standard/pro for production load
+    region: singapore      # closest to Vietnam
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: "Sao Khuê Awards API"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true  # Render generates a secure random key
+      - key: APP_URL
+        value: https://sk-awards-api.onrender.com  # update after first deploy
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_SSLMODE
+        value: require
+      - key: DB_URL
+        fromDatabase:
+          name: sk-awards-db
+          property: connectionString
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: error
+      - key: CACHE_STORE
+        value: array
+      - key: SESSION_DRIVER
+        value: array
+      - key: QUEUE_CONNECTION
+        value: sync
+
+    # Uncomment if you need persistent local file storage (e.g. uploaded documents).
+    # For production, prefer S3-compatible storage (Cloudflare R2, AWS S3, etc.)
+    # disk:
+    #   name: sk-awards-storage
+    #   mountPath: /var/www/html/storage/app
+    #   sizeGB: 10
+
+databases:
+  - name: sk-awards-db
+    databaseName: sk_awards
+    plan: starter          # never use free — it expires after 90 days
+    region: singapore

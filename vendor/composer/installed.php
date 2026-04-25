@@ -3,7 +3,7 @@
         'name' => 'sk-awards/backend',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'e5cb6cbb3fcc5cb0f247e8ea02d6323b22f36d0f',
+        'reference' => 'c2f63760ccaf4270443327bf511365a20d851df1',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -1101,7 +1101,7 @@
         'sk-awards/backend' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'e5cb6cbb3fcc5cb0f247e8ea02d6323b22f36d0f',
+            'reference' => 'c2f63760ccaf4270443327bf511365a20d851df1',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
