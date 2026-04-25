@@ -33,6 +33,4 @@ RUN chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8080
 
-#CMD sh -c "php artisan migrate --force && php artisan storage:link || true && php artisan config:cache && php artisan route:cache && php -S 0.0.0.0:${PORT:-8080} -t public"
-
-CMD sh -c "php artisan migrate --force && php artisan db:seed --class=AwardSystemSeeder --force && php artisan storage:link || true && php artisan config:cache && php artisan route:cache && php -S 0.0.0.0:${PORT:-8080} -t public"
+CMD sh -c "php artisan migrate --force && php artisan storage:link || true && php artisan config:cache && php artisan route:cache && php -S 0.0.0.0:${PORT:-8080} -t public"
