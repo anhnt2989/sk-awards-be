@@ -263,11 +263,6 @@ class AwardSystemSeeder extends Seeder
             'status'         => $data['status'],
         ]);
 
-        SubmissionDocument::where('submission_id', $sub->id)->delete();
-        foreach ($data['docs'] as $doc) {
-            SubmissionDocument::create(['submission_id' => $sub->id, 'name' => $doc]);
-        }
-
         if ($data['judges']) {
             $sub->assignedJudges()->sync($data['judges']);
         }
