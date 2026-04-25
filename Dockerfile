@@ -4,15 +4,20 @@ FROM php:8.4-fpm-alpine
 RUN apk add --no-cache \
     nginx \
     supervisor \
-    libpq-dev \
     libzip-dev \
     unzip \
-    curl
+    curl \
+    bash
 
-# PHP extensions
-RUN docker-php-ext-install pdo_pgsql pgsql zip opcache
+# PHP extensions for Laravel + MySQL
+RUN docker-php-ext-install \
+    pdo \
+    pdo_mysql \
+    mysqli \
+    zip \
+    opcache
 
-# Opcache tuning for immutable container files
+# Opcache tuning
 RUN { \
     echo 'opcache.enable=1'; \
     echo 'opcache.memory_consumption=256'; \
@@ -21,24 +26,30 @@ RUN { \
     echo 'opcache.interned_strings_buffer=16'; \
 } > /usr/local/etc/php/conf.d/opcache.ini
 
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Install PHP deps first (separate layer for cache efficiency)
+# Install PHP dependencies first
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-scripts
 
-# Copy application code
+# Copy app code
 COPY . .
 
-# Storage and cache must be writable at runtime
+# Laravel writable dirs
 RUN chmod -R 775 storage bootstrap/cache
 
 # Config files
-COPY docker/nginx.conf      /etc/nginx/nginx.conf
+COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/start.sh        /start.sh
+COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
 EXPOSE 10000
