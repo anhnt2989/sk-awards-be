@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\JudgeController;
 use App\Http\Controllers\Api\ProgramController;
 use App\Http\Controllers\Api\ScoreController;
 use App\Http\Controllers\Api\SubmissionController;
+use App\Http\Controllers\Api\UploadFileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -55,4 +56,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /* ── Dashboard stats ────────────────────────────────────────── */
     Route::get('programs/{program}/dashboard', [DashboardController::class, 'show']);
+
+    Route::post('upload', [UploadFileController::class, 'store']);
 });
