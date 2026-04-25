@@ -5,19 +5,29 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Program;
 use App\Models\Submission;
-use App\Models\SubmissionDocument;
+use App\Models\UploadedFile;
+use App\Services\FileUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class SubmissionController extends Controller
 {
+    protected FileUploadService $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
+    {
+        $this->fileUploadService = $fileUploadService;
+    }
+
     public function index(Request $request, Program $program): JsonResponse
     {
         $user = $request->user();
 
-        $query = $program->submissions()
-            ->with(['documents', 'assignedJudges', 'scores.details']);
+        $query = $program->submissions()->with(['files', 'assignedJudges', 'scores.details']);
 
         if ($user->isSubmitter()) {
             $query->where('submitter_id', $user->id);
@@ -47,6 +57,9 @@ class SubmissionController extends Controller
         return response()->json($submissions);
     }
 
+    /**
+     * @throws Throwable
+     */
     public function store(Request $request, Program $program): JsonResponse
     {
         $user = $request->user();
@@ -58,8 +71,8 @@ class SubmissionController extends Controller
             'company'     => 'required|string|max:255',
             'category_id' => 'required|string',
             'description' => 'nullable|string',
-            'docs'        => 'nullable|array',
-            'docs.*'      => 'string|max:255',
+            'file_ids'    => 'nullable|array|max:5',
+            'file_ids.*'  => 'nullable|integer',
         ]);
 
         abort_unless(
@@ -67,29 +80,51 @@ class SubmissionController extends Controller
             422, 'Lĩnh vực không hợp lệ.'
         );
 
-        return DB::transaction(function () use ($data, $program, $user) {
-            $id = $program->generateSubmissionId();
+        try {
+            $submission = DB::transaction(function () use ($data, $program, $user, &$uploadedFiles) {
+                $id = $program->generateSubmissionId();
 
-            $submission = Submission::create([
-                'id'             => $id,
-                'program_id'     => $program->id,
-                'name'           => $data['name'],
-                'company'        => $data['company'],
-                'submitter_id'   => $user->id,
-                'category_id'    => $data['category_id'],
-                'description'    => $data['description'] ?? null,
-                'submitted_date' => now()->toDateString(),
-                'status'         => 'pending',
-            ]);
+                $submission = Submission::create([
+                    'id'             => $id,
+                    'program_id'     => $program->id,
+                    'name'           => $data['name'],
+                    'company'        => $data['company'],
+                    'submitter_id'   => $user->id,
+                    'category_id'    => $data['category_id'],
+                    'description'    => $data['description'] ?? null,
+                    'submitted_date' => now()->toDateString(),
+                    'status'         => 'pending',
+                ]);
 
-            foreach ($data['docs'] ?? [] as $doc) {
-                SubmissionDocument::create(['submission_id' => $id, 'name' => $doc]);
-            }
+                if (!empty($data['file_ids'])) {
+                    $updated = UploadedFile::whereIn('id', $data['file_ids'])
+                                            ->where('user_id', $user->id)
+                                            ->whereNull('fileable_id')
+                                            ->update([
+                                                'fileable_type' => Submission::class,
+                                                'fileable_id'   => $submission->id,
+                                            ]);
 
-            $submission->load(['documents', 'assignedJudges', 'scores.details']);
+                    if ($updated != count($data['file_ids'])) {
+                        throw ValidationException::withMessages([
+                            'file_ids' => 'Có file không hợp lệ trong quá trình upload, xin kiểm tra lại'
+                        ]);
+                    }
+                }
 
-            return response()->json($this->format($submission, $program), 201);
-        });
+                return $submission;
+            });
+
+            $submission->load(['files', 'assignedJudges', 'scores.details']);
+
+            return response()->json(
+                $this->format($submission, $program),
+                201
+            );
+        } catch (Throwable $e) {
+            Log::error($e);
+            throw $e;
+        }
     }
 
     /** Admin: approve / reject a submission */
@@ -122,7 +157,7 @@ class SubmissionController extends Controller
             'description'    => $s->description,
             'submitted_date' => $s->submitted_date?->toDateString(),
             'status'         => $s->status,
-            'docs'           => $s->documents->pluck('name')->values(),
+            'docs'           => $s->files->pluck('original_name')->values(),
             'assigned_judges' => $s->assignedJudges->pluck('id')->values(),
         ];
     }
