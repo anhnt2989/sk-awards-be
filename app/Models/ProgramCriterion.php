@@ -11,7 +11,7 @@ class ProgramCriterion extends Model
 
     public $incrementing = false;
 
-    protected $fillable = ['id', 'program_id', 'name', 'description', 'max_score', 'sort_order'];
+    protected $fillable = ['id', 'program_id', 'category_id', 'name', 'description', 'max_score', 'sort_order'];
 
     protected function casts(): array
     {
