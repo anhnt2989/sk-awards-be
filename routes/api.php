@@ -48,9 +48,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('programs/{program}/judges/{judge}',   [JudgeController::class, 'removeFromProgram']);
 
     /* ── Submissions ────────────────────────────────────────────── */
-    Route::get('programs/{program}/submissions',                   [SubmissionController::class, 'index']);
-    Route::post('programs/{program}/submissions',                  [SubmissionController::class, 'store']);
-    Route::post('programs/{program}/submissions/{submission}/review', [SubmissionController::class, 'review']);
+    Route::get('programs/{program}/submissions',                        [SubmissionController::class, 'index']);
+    Route::post('programs/{program}/submissions',                       [SubmissionController::class, 'store']);
+    Route::patch('programs/{program}/submissions/{submission}',         [SubmissionController::class, 'update']);
+    Route::post('programs/{program}/submissions/{submission}/review',   [SubmissionController::class, 'review']);
 
     /* ── Judge assignments ──────────────────────────────────────── */
     Route::post('programs/{program}/submissions/{submission}/assign/{judge}',   [AssignmentController::class, 'assign']);

@@ -97,6 +97,38 @@ class SubmissionController extends Controller
         }
     }
 
+    public function update(Request $request, Program $program, Submission $submission): JsonResponse
+    {
+        $user = $request->user();
+        abort_unless($submission->program_id === $program->id, 404);
+
+        if ($user->isSubmitter()) {
+            abort_unless((string) $submission->submitter_id === (string) $user->id, 403, 'Bạn không có quyền chỉnh sửa hồ sơ này.');
+        } else {
+            abort_unless($user->isAdmin(), 403);
+        }
+
+        $data = $request->validate([
+            'name'        => 'sometimes|string|max:255',
+            'company'     => 'sometimes|string|max:255',
+            'category_id' => 'sometimes|string',
+            'description' => 'sometimes|nullable|string',
+            'docs'        => 'sometimes|nullable|string',
+        ]);
+
+        if (isset($data['category_id'])) {
+            abort_unless(
+                $program->categories()->where('id', $data['category_id'])->exists(),
+                422, 'Lĩnh vực không hợp lệ.'
+            );
+        }
+
+        $submission->update($data);
+        $submission->load(['assignedJudges', 'scores.details']);
+
+        return response()->json($this->format($submission, $program));
+    }
+
     /** Admin: approve / reject a submission */
     public function review(Request $request, Program $program, Submission $submission): JsonResponse
     {
