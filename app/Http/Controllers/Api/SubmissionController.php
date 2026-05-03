@@ -5,29 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Program;
 use App\Models\Submission;
-use App\Models\UploadedFile;
-use App\Services\FileUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class SubmissionController extends Controller
 {
-    protected FileUploadService $fileUploadService;
-
-    public function __construct(FileUploadService $fileUploadService)
-    {
-        $this->fileUploadService = $fileUploadService;
-    }
-
     public function index(Request $request, Program $program): JsonResponse
     {
         $user = $request->user();
 
-        $query = $program->submissions()->with(['files', 'assignedJudges', 'scores.details']);
+        $query = $program->submissions()->with(['assignedJudges', 'scores.details']);
 
         if ($user->isSubmitter()) {
             $query->where('submitter_id', $user->id);
@@ -71,8 +61,7 @@ class SubmissionController extends Controller
             'company'     => 'required|string|max:255',
             'category_id' => 'required|string',
             'description' => 'nullable|string',
-            'file_ids'    => 'nullable|array|max:5',
-            'file_ids.*'  => 'nullable|integer',
+            'docs'        => 'nullable|string',
         ]);
 
         abort_unless(
@@ -81,41 +70,22 @@ class SubmissionController extends Controller
         );
 
         try {
-            $submission = DB::transaction(function () use ($data, $program, $user, &$uploadedFiles) {
-                $id = $program->generateSubmissionId();
-
-                $submission = Submission::create([
-                    'id'             => $id,
+            $submission = DB::transaction(function () use ($data, $program, $user) {
+                return Submission::create([
+                    'id'             => $program->generateSubmissionId(),
                     'program_id'     => $program->id,
                     'name'           => $data['name'],
                     'company'        => $data['company'],
                     'submitter_id'   => $user->id,
                     'category_id'    => $data['category_id'],
                     'description'    => $data['description'] ?? null,
+                    'docs'           => $data['docs'] ?? null,
                     'submitted_date' => now()->toDateString(),
                     'status'         => 'pending',
                 ]);
-
-                if (!empty($data['file_ids'])) {
-                    $updated = UploadedFile::whereIn('id', $data['file_ids'])
-                                            ->where('user_id', $user->id)
-                                            ->whereNull('fileable_id')
-                                            ->update([
-                                                'fileable_type' => Submission::class,
-                                                'fileable_id'   => $submission->id,
-                                            ]);
-
-                    if ($updated != count($data['file_ids'])) {
-                        throw ValidationException::withMessages([
-                            'file_ids' => 'Có file không hợp lệ trong quá trình upload, xin kiểm tra lại'
-                        ]);
-                    }
-                }
-
-                return $submission;
             });
 
-            $submission->load(['files', 'assignedJudges', 'scores.details']);
+            $submission->load(['assignedJudges', 'scores.details']);
 
             return response()->json(
                 $this->format($submission, $program),
@@ -157,7 +127,7 @@ class SubmissionController extends Controller
             'description'    => $s->description,
             'submitted_date' => $s->submitted_date?->toDateString(),
             'status'         => $s->status,
-            'docs'           => $s->files->pluck('original_name')->values(),
+            'docs'           => $s->docs ?? [],
             'assigned_judges' => $s->assignedJudges->pluck('id')->values(),
         ];
     }

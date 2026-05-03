@@ -16,7 +16,7 @@ class Submission extends Model
 
     protected $fillable = [
         'id', 'program_id', 'name', 'company', 'submitter_id',
-        'category_id', 'description', 'submitted_date', 'status',
+        'category_id', 'description', 'docs', 'submitted_date', 'status',
     ];
 
     protected function casts(): array
