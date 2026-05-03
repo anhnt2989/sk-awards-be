@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ProgramController;
 use App\Http\Controllers\Api\ScoreController;
 use App\Http\Controllers\Api\SubmissionController;
 use App\Http\Controllers\Api\UploadFileController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,6 +27,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('auth/me',     [AuthController::class, 'me']);
     Route::post('auth/logout', [AuthController::class, 'logout']);
+
+    /* ── Users ──────────────────────────────────────────────────── */
+    Route::get('users',                        [UserController::class, 'index']);
+    Route::patch('users/{user}',               [UserController::class, 'update']);
+    Route::post('users/{user}/password',       [UserController::class, 'changePassword']);
 
     /* ── Judges (global list) ───────────────────────────────────── */
     Route::get('judges', [JudgeController::class, 'index']);
