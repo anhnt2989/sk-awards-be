@@ -23,6 +23,25 @@ class UserController extends Controller
         return response()->json($users);
     }
 
+    public function changePassword(Request $request, User $user): JsonResponse
+    {
+        $requester = $request->user();
+        abort_unless($requester->isAdmin() || $requester->id === $user->id, 403, 'Không có quyền thực hiện thao tác này.');
+
+        $data = $request->validate([
+            'current_password' => 'required|string',
+            'new_password'     => 'required|string|min:6',
+        ]);
+
+        if (! $requester->isAdmin()) {
+            abort_unless(Hash::check($data['current_password'], $user->password), 422, 'Mật khẩu hiện tại không đúng.');
+        }
+
+        $user->update(['password' => Hash::make($data['new_password'])]);
+
+        return response()->json(['message' => 'Đổi mật khẩu thành công.']);
+    }
+
     public function update(Request $request, User $user): JsonResponse
     {
         abort_unless($request->user()->isAdmin(), 403, 'Chỉ quản trị viên mới có quyền này.');
