@@ -50,7 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
     /* ── Submissions ────────────────────────────────────────────── */
     Route::get('programs/{program}/submissions',                        [SubmissionController::class, 'index']);
     Route::post('programs/{program}/submissions',                       [SubmissionController::class, 'store']);
-    Route::patch('programs/{program}/submissions/{submission}',         [SubmissionController::class, 'update']);
+    Route::patch('programs/{program}/submissions/{submission}',          [SubmissionController::class, 'update']);
+    Route::post('programs/{program}/submissions/{submission}/recall',   [SubmissionController::class, 'recall']);
     Route::post('programs/{program}/submissions/{submission}/review',   [SubmissionController::class, 'review']);
 
     /* ── Judge assignments ──────────────────────────────────────── */
