@@ -129,7 +129,20 @@ class SubmissionController extends Controller
         return response()->json($this->format($submission, $program));
     }
 
-    /** Admin: approve / reject a submission */
+    /** Submitter: request recall of an approved submission */
+    public function recall(Request $request, Program $program, Submission $submission): JsonResponse
+    {
+        $user = $request->user();
+        abort_unless($submission->program_id === $program->id, 404);
+        abort_unless((string) $submission->submitter_id === (string) $user->id, 403, 'Bạn không có quyền thu hồi hồ sơ này.');
+        abort_unless($submission->status === 'approved', 422, 'Chỉ có thể thu hồi hồ sơ đã duyệt.');
+
+        $submission->update(['status' => 'recall_requested']);
+
+        return response()->json(['status' => $submission->status]);
+    }
+
+    /** Admin: approve / reject / handle recall of a submission */
     public function review(Request $request, Program $program, Submission $submission): JsonResponse
     {
         abort_unless($request->user()->isAdmin(), 403);
