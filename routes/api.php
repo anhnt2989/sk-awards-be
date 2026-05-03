@@ -29,8 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
 
     /* ── Users ──────────────────────────────────────────────────── */
-    Route::get('users',          [UserController::class, 'index']);
-    Route::patch('users/{user}', [UserController::class, 'update']);
+    Route::get('users',                        [UserController::class, 'index']);
+    Route::patch('users/{user}',               [UserController::class, 'update']);
+    Route::post('users/{user}/password',       [UserController::class, 'changePassword']);
 
     /* ── Judges (global list) ───────────────────────────────────── */
     Route::get('judges', [JudgeController::class, 'index']);
