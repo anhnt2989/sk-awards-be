@@ -48,13 +48,15 @@ class ProgramController extends Controller
             'color'       => 'nullable|string|max:20',
             'deadline'    => 'nullable|date',
             'description' => 'nullable|string',
-            'categories'  => 'required|array|min:1',
-            'categories.*.name'  => 'required|string',
-            'categories.*.color' => 'nullable|string|max:20',
-            'criteria'    => 'required|array|min:1',
-            'criteria.*.name'      => 'required|string',
-            'criteria.*.description' => 'nullable|string',
-            'criteria.*.max_score'   => 'required|integer|min:1|max:100',
+            'categories'                                          => 'required|array|min:1',
+            'categories.*.name'                                   => 'required|string',
+            'categories.*.color'                                  => 'nullable|string|max:20',
+            'categories.*.sub_categories'                         => 'required|array|min:1',
+            'categories.*.sub_categories.*.name'                  => 'required|string',
+            'categories.*.sub_categories.*.criteria'              => 'required|array|min:1',
+            'categories.*.sub_categories.*.criteria.*.name'       => 'required|string',
+            'categories.*.sub_categories.*.criteria.*.description' => 'nullable|string',
+            'categories.*.sub_categories.*.criteria.*.max_score'  => 'required|integer|min:1|max:100',
         ]);
 
         return DB::transaction(function () use ($data) {
@@ -76,25 +78,41 @@ class ProgramController extends Controller
                 'next_sub_id' => 1,
             ]);
 
-            foreach ($data['categories'] as $i => $cat) {
+            $crIdx = 1;
+            foreach ($data['categories'] as $ci => $cat) {
+                $catId = $program->id . '-C' . ($ci + 1);
                 ProgramCategory::create([
-                    'id'         => $program->id . '-C' . ($i + 1),
+                    'id'         => $catId,
                     'program_id' => $program->id,
+                    'parent_id'  => null,
                     'name'       => $cat['name'],
                     'color'      => $cat['color'] ?? '#3b82f6',
-                    'sort_order' => $i,
+                    'sort_order' => $ci,
                 ]);
-            }
 
-            foreach ($data['criteria'] as $i => $crit) {
-                ProgramCriterion::create([
-                    'id'          => $program->id . '-cr' . ($i + 1),
-                    'program_id'  => $program->id,
-                    'name'        => $crit['name'],
-                    'description' => $crit['description'] ?? null,
-                    'max_score'   => $crit['max_score'],
-                    'sort_order'  => $i,
-                ]);
+                foreach ($cat['sub_categories'] as $si => $sc) {
+                    $scId = $catId . '-SC' . ($si + 1);
+                    ProgramCategory::create([
+                        'id'         => $scId,
+                        'program_id' => $program->id,
+                        'parent_id'  => $catId,
+                        'name'       => $sc['name'],
+                        'color'      => $cat['color'] ?? '#3b82f6',
+                        'sort_order' => $si,
+                    ]);
+
+                    foreach ($sc['criteria'] as $ki => $crit) {
+                        ProgramCriterion::create([
+                            'id'          => $program->id . '-cr' . $crIdx++,
+                            'program_id'  => $program->id,
+                            'category_id' => $scId,
+                            'name'        => $crit['name'],
+                            'description' => $crit['description'] ?? null,
+                            'max_score'   => $crit['max_score'],
+                            'sort_order'  => $ki,
+                        ]);
+                    }
+                }
             }
 
             $program->load(['categories', 'criteria', 'judges']);
@@ -126,6 +144,33 @@ class ProgramController extends Controller
 
     private function formatProgram(Program $p): array
     {
+        $allCats    = $p->categories;
+        $topCats    = $allCats->whereNull('parent_id');
+        $subCatMap  = $allCats->whereNotNull('parent_id')->groupBy('parent_id');
+        $critMap    = $p->criteria->groupBy('category_id');
+
+        $categories = $topCats->map(function ($cat) use ($subCatMap, $critMap) {
+            $subCats = ($subCatMap[$cat->id] ?? collect())->map(function ($sc) use ($critMap) {
+                return [
+                    'id'       => $sc->id,
+                    'name'     => $sc->name,
+                    'criteria' => ($critMap[$sc->id] ?? collect())->map(fn ($c) => [
+                        'id'   => $c->id,
+                        'name' => $c->name,
+                        'desc' => $c->description,
+                        'max'  => $c->max_score,
+                    ])->values(),
+                ];
+            })->values();
+
+            return [
+                'id'             => $cat->id,
+                'name'           => $cat->name,
+                'color'          => $cat->color,
+                'sub_categories' => $subCats,
+            ];
+        })->values();
+
         return [
             'id'          => $p->id,
             'name'        => $p->name,
@@ -136,14 +181,14 @@ class ProgramController extends Controller
             'deadline'    => $p->deadline?->toDateString(),
             'description' => $p->description,
             'next_sub_id' => $p->next_sub_id,
-            'categories'  => $p->categories->map(fn ($c) => [
-                'id' => $c->id, 'name' => $c->name, 'color' => $c->color,
+            'categories'  => $categories,
+            'criteria'    => $p->criteria->map(fn ($c) => [
+                'id'   => $c->id,
+                'name' => $c->name,
+                'desc' => $c->description,
+                'max'  => $c->max_score,
             ])->values(),
-            'criteria' => $p->criteria->map(fn ($c) => [
-                'id' => $c->id, 'name' => $c->name,
-                'desc' => $c->description, 'max' => $c->max_score,
-            ])->values(),
-            'judge_ids' => $p->judges->pluck('id')->values(),
+            'judge_ids'   => $p->judges->pluck('id')->values(),
         ];
     }
 
