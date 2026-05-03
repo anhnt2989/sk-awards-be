@@ -29,13 +29,8 @@ class UserController extends Controller
         abort_unless($requester->isAdmin() || $requester->id === $user->id, 403, 'Không có quyền thực hiện thao tác này.');
 
         $data = $request->validate([
-            'current_password' => 'required|string',
-            'new_password'     => 'required|string|min:6',
+            'new_password' => 'required|string|min:6',
         ]);
-
-        if (! $requester->isAdmin()) {
-            abort_unless(Hash::check($data['current_password'], $user->password), 422, 'Mật khẩu hiện tại không đúng.');
-        }
 
         $user->update(['password' => Hash::make($data['new_password'])]);
 
