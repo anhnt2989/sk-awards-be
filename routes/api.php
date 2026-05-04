@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /* ── Judges (global list) ───────────────────────────────────── */
     Route::get('judges', [JudgeController::class, 'index']);
+    Route::patch('judges/{judge}', [JudgeController::class, 'update']);
 
     /* ── Programs ───────────────────────────────────────────────── */
     Route::get('programs',          [ProgramController::class, 'index']);

@@ -10,6 +10,23 @@ use Illuminate\Http\Request;
 
 class JudgeController extends Controller
 {
+    /** Update a judge's profile fields (admin only) */
+    public function update(Request $request, Judge $judge): JsonResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+
+        $data = $request->validate([
+            'name'        => 'sometimes|string|max:255',
+            'email'       => 'sometimes|email|max:255|unique:judges,email,' . $judge->id,
+            'specialty'   => 'sometimes|nullable|string|max:255',
+            'judge_group' => 'sometimes|nullable|string|max:255',
+        ]);
+
+        $judge->update($data);
+
+        return response()->json($this->format($judge->fresh()));
+    }
+
     /** List all judges (admin: all, judge: self, submitter: none) */
     public function index(Request $request): JsonResponse
     {
