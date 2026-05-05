@@ -24,6 +24,48 @@ class AssignmentController extends Controller
         return response()->json(['message' => 'Đã phân công giám khảo.']);
     }
 
+    public function bulkAssign(Request $request, Program $program, Judge $judge): JsonResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        abort_unless($program->judges()->where('judges.id', $judge->id)->exists(), 422, 'Giám khảo không thuộc chương trình này.');
+
+        $data = $request->validate([
+            'submission_ids'   => 'required|array|min:1',
+            'submission_ids.*' => 'required|string|exists:submissions,id',
+        ]);
+
+        $programSubmissionIds = $program->submissions()->pluck('id');
+
+        $submissions = Submission::whereIn('id', $data['submission_ids'])
+            ->whereIn('id', $programSubmissionIds)
+            ->get();
+
+        $notApproved = $submissions->where('status', '!=', 'approved')->pluck('id');
+        if ($notApproved->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Một số hồ sơ chưa được duyệt.',
+                'invalid_ids' => $notApproved->values(),
+            ], 422);
+        }
+
+        $outsideProgram = collect($data['submission_ids'])->diff($programSubmissionIds);
+        if ($outsideProgram->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Một số hồ sơ không thuộc chương trình này.',
+                'invalid_ids' => $outsideProgram->values(),
+            ], 422);
+        }
+
+        foreach ($submissions as $submission) {
+            $submission->assignedJudges()->syncWithoutDetaching([$judge->id]);
+        }
+
+        return response()->json([
+            'message'    => 'Đã phân công giám khảo cho ' . $submissions->count() . ' hồ sơ.',
+            'assigned'   => $submissions->count(),
+        ]);
+    }
+
     public function unassign(Request $request, Program $program, Submission $submission, Judge $judge): JsonResponse
     {
         abort_unless($request->user()->isAdmin(), 403);
