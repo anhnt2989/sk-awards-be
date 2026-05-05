@@ -24,45 +24,53 @@ class AssignmentController extends Controller
         return response()->json(['message' => 'Đã phân công giám khảo.']);
     }
 
-    public function bulkAssign(Request $request, Program $program, Judge $judge): JsonResponse
+    public function bulkAssign(Request $request, Program $program): JsonResponse
     {
         abort_unless($request->user()->isAdmin(), 403);
-        abort_unless($program->judges()->where('judges.id', $judge->id)->exists(), 422, 'Giám khảo không thuộc chương trình này.');
 
         $data = $request->validate([
-            'submission_ids'   => 'required|array|min:1',
-            'submission_ids.*' => 'required|string|exists:submissions,id',
+            'sub_ids'    => 'required|array|min:1',
+            'sub_ids.*'  => 'required|string|exists:submissions,id',
+            'judge_ids'  => 'required|array|min:1',
+            'judge_ids.*'=> 'required|string|exists:judges,id',
         ]);
 
         $programSubmissionIds = $program->submissions()->pluck('id');
+        $programJudgeIds = $program->judges()->pluck('judges.id');
 
-        $submissions = Submission::whereIn('id', $data['submission_ids'])
-            ->whereIn('id', $programSubmissionIds)
-            ->get();
+        $outsideSubs = collect($data['sub_ids'])->diff($programSubmissionIds);
+        if ($outsideSubs->isNotEmpty()) {
+            return response()->json([
+                'message'     => 'Một số hồ sơ không thuộc chương trình này.',
+                'invalid_ids' => $outsideSubs->values(),
+            ], 422);
+        }
+
+        $outsideJudges = collect($data['judge_ids'])->diff($programJudgeIds);
+        if ($outsideJudges->isNotEmpty()) {
+            return response()->json([
+                'message'     => 'Một số giám khảo không thuộc chương trình này.',
+                'invalid_ids' => $outsideJudges->values(),
+            ], 422);
+        }
+
+        $submissions = Submission::whereIn('id', $data['sub_ids'])->get();
 
         $notApproved = $submissions->where('status', '!=', 'approved')->pluck('id');
         if ($notApproved->isNotEmpty()) {
             return response()->json([
-                'message' => 'Một số hồ sơ chưa được duyệt.',
+                'message'     => 'Một số hồ sơ chưa được duyệt.',
                 'invalid_ids' => $notApproved->values(),
             ], 422);
         }
 
-        $outsideProgram = collect($data['submission_ids'])->diff($programSubmissionIds);
-        if ($outsideProgram->isNotEmpty()) {
-            return response()->json([
-                'message' => 'Một số hồ sơ không thuộc chương trình này.',
-                'invalid_ids' => $outsideProgram->values(),
-            ], 422);
-        }
-
         foreach ($submissions as $submission) {
-            $submission->assignedJudges()->syncWithoutDetaching([$judge->id]);
+            $submission->assignedJudges()->syncWithoutDetaching($data['judge_ids']);
         }
 
         return response()->json([
-            'message'    => 'Đã phân công giám khảo cho ' . $submissions->count() . ' hồ sơ.',
-            'assigned'   => $submissions->count(),
+            'message'  => 'Đã phân công ' . count($data['judge_ids']) . ' giám khảo cho ' . $submissions->count() . ' hồ sơ.',
+            'assigned' => $submissions->count(),
         ]);
     }
 

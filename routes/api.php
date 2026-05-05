@@ -56,7 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('programs/{program}/submissions/{submission}/review',   [SubmissionController::class, 'review']);
 
     /* ── Judge assignments ──────────────────────────────────────── */
-    Route::post('programs/{program}/judges/{judge}/bulk-assign',               [AssignmentController::class, 'bulkAssign']);
+    Route::post('programs/{program}/submissions/bulk-assign',                  [AssignmentController::class, 'bulkAssign']);
     Route::post('programs/{program}/submissions/{submission}/assign/{judge}',   [AssignmentController::class, 'assign']);
     Route::delete('programs/{program}/submissions/{submission}/assign/{judge}', [AssignmentController::class, 'unassign']);
 
