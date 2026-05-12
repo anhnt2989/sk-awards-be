@@ -1,21 +1,48 @@
+# VCS
 .git
+.gitignore
+.gitattributes
 .github
+
+# Env
 .env
-.env.backup
-.env.production
+.env.*
+!.env.example
+
+# Dependencies
 node_modules
 vendor
+
+# Laravel runtime
 database/database.sqlite
 storage/logs/*
 storage/framework/cache/data/*
 storage/framework/sessions/*
 storage/framework/views/*
+public/storage
+
+# Tests / linters
 tests
 phpunit.xml
 pint.json
+
+# Docs
 *.md
+
+# IDE / AI configs
+.idea
+.vscode
+.claude
 .editorconfig
-.gitattributes
-.gitignore
+
+# OS / temp
+.DS_Store
+Thumbs.db
+*.log
+
+# Docker (image không cần)
 .dockerignore
 Dockerfile
+
+# Render
+render.yaml

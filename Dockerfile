@@ -1,6 +1,8 @@
-FROM php:8.4-cli-alpine
+FROM php:8.4-fpm-alpine
 
 RUN apk add --no-cache \
+    nginx \
+    supervisor \
     libzip-dev \
     unzip \
     curl \
@@ -29,8 +31,13 @@ RUN composer install \
 
 COPY . .
 
-RUN chmod -R 775 storage bootstrap/cache
+RUN mkdir -p /var/lib/nginx/tmp /var/lib/nginx/logs /var/log/nginx \
+    && chown -R www-data:www-data /var/www/html /var/lib/nginx /var/log/nginx \
+    && chmod -R 775 storage bootstrap/cache
+
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/supervisord.conf /etc/supervisord.conf
 
 EXPOSE 8080
 
-CMD sh -c "php artisan migrate --force && php artisan storage:link || true && php artisan config:cache && php artisan route:cache && php -S 0.0.0.0:${PORT:-8080} -t public"
+CMD ["sh", "-c", "php artisan package:discover --ansi --no-interaction && php artisan migrate --force && (php artisan storage:link || true) && php artisan config:cache && php artisan route:cache && exec supervisord -c /etc/supervisord.conf"]
