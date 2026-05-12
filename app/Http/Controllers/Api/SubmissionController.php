@@ -23,7 +23,6 @@ class SubmissionController extends Controller
             $query->where('submitter_id', $user->id);
         } elseif ($user->isJudge()) {
             $judgeId = $user->judge?->id;
-            // Judges see only submissions assigned to them
             $query->whereHas('assignedJudges', fn ($q) => $q->where('judges.id', $judgeId))
                 ->where('status', 'approved');
         }

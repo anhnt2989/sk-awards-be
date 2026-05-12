@@ -36,7 +36,8 @@ class User extends Authenticatable
         return $this->hasMany(Submission::class, 'submitter_id');
     }
 
-    public function isAdmin(): bool      { return $this->role === 'admin'; }
-    public function isJudge(): bool      { return $this->role === 'judge'; }
-    public function isSubmitter(): bool  { return $this->role === 'submitter'; }
+    public function isAdmin(): bool       { return $this->role === 'admin'; }
+    public function isJudge(): bool       { return $this->role === 'judge'; }
+    public function isSubmitter(): bool   { return $this->role === 'submitter'; }
+    public function isAccountant(): bool  { return $this->role === 'accountant'; }
 }

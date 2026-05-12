@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "PowerShell(cmd /c \"dir /s /b C:\\\\Users\\\\Jason\\\\Documents\\\\sk-awards-fe\\\\src\")",
-      "PowerShell(cmd /c \"dir /s /b C:\\\\Users\\\\Jason\\\\Documents\\\\sk-awards-fe\\\\src\\\\hooks\" ; cmd /c \"dir /s /b C:\\\\Users\\\\Jason\\\\Documents\\\\sk-awards-fe\\\\src\\\\api\")"
+      "PowerShell(cmd /c \"dir /s /b C:\\\\Users\\\\Jason\\\\Documents\\\\sk-awards-fe\\\\src\\\\hooks\" ; cmd /c \"dir /s /b C:\\\\Users\\\\Jason\\\\Documents\\\\sk-awards-fe\\\\src\\\\api\")",
+      "Bash(Select-String -Pattern \"middleware|Middleware\")"
     ]
   }
 }
