@@ -31,7 +31,7 @@ class JudgeController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        abort_unless($user->isAdmin() || $user->isJudge() || $user->isAccountant(), 403);
+        abort_unless($user->isAdmin() || $user->isJudge() || $user->isAssistant(), 403);
 
         $judges = Judge::all()->map(fn ($j) => $this->format($j));
 

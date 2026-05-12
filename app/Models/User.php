@@ -39,5 +39,5 @@ class User extends Authenticatable
     public function isAdmin(): bool       { return $this->role === 'admin'; }
     public function isJudge(): bool       { return $this->role === 'judge'; }
     public function isSubmitter(): bool   { return $this->role === 'submitter'; }
-    public function isAccountant(): bool  { return $this->role === 'accountant'; }
+    public function isAssistant(): bool  { return $this->role === 'assistant'; }
 }

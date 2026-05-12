@@ -15,7 +15,7 @@ class DashboardController extends Controller
         $user    = $request->user();
         $program->load(['categories', 'criteria', 'judges', 'submissions.scores.details', 'submissions.assignedJudges']);
 
-        if ($user->isAdmin() || $user->isAccountant()) {
+        if ($user->isAdmin() || $user->isAssistant()) {
             return response()->json($this->adminStats($program));
         }
 
