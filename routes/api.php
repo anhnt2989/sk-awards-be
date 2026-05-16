@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\JudgeController;
 use App\Http\Controllers\Api\ProgramController;
 use App\Http\Controllers\Api\ScoreController;
 use App\Http\Controllers\Api\SubmissionController;
+use App\Http\Controllers\Api\TempScoreController;
 use App\Http\Controllers\Api\UploadFileController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -61,8 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('programs/{program}/submissions/{submission}/assign/{judge}', [AssignmentController::class, 'unassign']);
 
     /* ── Scores ─────────────────────────────────────────────────── */
-    Route::get('programs/{program}/submissions/{submission}/scores', [ScoreController::class, 'index']);
-    Route::put('programs/{program}/submissions/{submission}/scores', [ScoreController::class, 'upsert']);
+    Route::get('programs/{program}/submissions/{submission}/scores',      [ScoreController::class, 'index']);
+    Route::put('programs/{program}/submissions/{submission}/scores',      [ScoreController::class, 'upsert']);
+    Route::put('programs/{program}/submissions/{submission}/temp-scores', [TempScoreController::class, 'upsert']);
 
     /* ── Dashboard stats ────────────────────────────────────────── */
     Route::get('programs/{program}/dashboard', [DashboardController::class, 'show']);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\TempScoreController;
 use App\Models\Program;
 use App\Models\Score;
 use App\Models\ScoreDetail;
@@ -32,7 +33,14 @@ class ScoreController extends Controller
 
         $scores = $query->get()->map(fn ($s) => $this->format($s, $program));
 
-        return response()->json($scores);
+        $tempScoreFormatter = new TempScoreController();
+        $tempScores = $submission->tempScores()->with(['user', 'details'])->get()
+            ->map(fn ($ts) => $tempScoreFormatter->format($ts, $program));
+
+        return response()->json([
+            'scores'      => $scores,
+            'temp_scores' => $tempScores,
+        ]);
     }
 
     /** Save (draft or submit) a score — judge only */

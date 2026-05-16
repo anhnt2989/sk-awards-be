@@ -51,6 +51,11 @@ class Submission extends Model
         return $this->hasMany(Score::class, 'submission_id');
     }
 
+    public function tempScores(): HasMany
+    {
+        return $this->hasMany(TempScore::class, 'submission_id');
+    }
+
     public function files(): MorphMany
     {
         return $this->morphMany(UploadedFile::class, 'fileable');
