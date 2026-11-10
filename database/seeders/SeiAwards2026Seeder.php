@@ -53,7 +53,7 @@ class SeiAwards2026Seeder extends Seeder
                         // Tiêu chí 5: Ứng dụng các công nghệ vào hoạt động hành chính (20 điểm)
                         ['name' => '5.1 Sử dụng phần mềm và hệ thống quản lý trường học để quản lý thông tin người học, người dạy, và nhân viên hành chính.', 'description' => null, 'max_score' => 5],
                         ['name' => '5.2 Mức độ chuyển đổi từ tài liệu và văn bản truyền thống sang phiên bản số hóa, bao gồm cả hồ sơ học sinh và quản lý hồ sơ nhân viên.', 'description' => null, 'max_score' => 5],
-                        ['name' => '5.3 Có sử dụng hệ thống quản lý nguồn lực chung để phục công tác điều hành, quản lý và ra quyết định', 'description' => null, 'max_score' => 5],
+                        ['name' => '5.3 Có sử dụng hệ thống quản lý nguồn lực chung để phục vụ công tác điều hành, quản lý và ra quyết định', 'description' => null, 'max_score' => 5],
                         ['name' => '5.4 Có sử dụng các hệ thống quản lý tác nghiệp phục vụ các mảng công tác liên quan: kế hoạch đầu tư, mua sắm trang thiết bị, đào tạo bồi dưỡng', 'description' => null, 'max_score' => 5],
                     ],
                 ],
@@ -107,13 +107,13 @@ class SeiAwards2026Seeder extends Seeder
                         ['name' => '1.4 Sản phẩm, giải pháp công nghệ số có sử dụng các kiến trúc dữ liệu:', 'description' => 'CSDL quan hệ; CSDL phi quan hệ; Kho dữ liệu (Data Warehouse); Hồ Dữ liệu (Data Lake)', 'max_score' => 5],
                         // Tiêu chí 2: Tính năng, quản trị và an toàn dữ liệu (20 điểm)
                         ['name' => '2.1 Các tính năng của sản phẩm, giải pháp công nghệ số đảm bảo:', 'description' => 'Tính dễ sử dụng và tương tác cao; Tích hợp nội dung đa phương tiện; Khả năng cá thể/cá nhân hoá (UX); An toàn và bảo mật dữ liệu', 'max_score' => 5],
-                        ['name' => '2.2 Sản phẩm, giải pháp công nghệ đảm bảo các yêu cầu về an toàn, anh ninh dữ liệu theo quy định của Bộ TT&TT:', 'description' => 'Đảm bảo theo yêu cầu về an toàn bảo mật thông tin; Chữ ký số; Đảm bảo theo NĐ 13/NĐ-CP', 'max_score' => 5],
+                        ['name' => '2.2 Sản phẩm, giải pháp công nghệ đảm bảo các yêu cầu về an toàn, an ninh dữ liệu theo quy định của Bộ TT&TT:', 'description' => 'Đảm bảo theo yêu cầu về an toàn bảo mật thông tin; Chữ ký số; Đảm bảo theo NĐ 13/NĐ-CP', 'max_score' => 5],
                         ['name' => '2.3 Sản phẩm, giải pháp công nghệ cung cấp nền tảng quản lý dữ liệu để đảm bảo chất lượng dữ liệu và trao đổi liên thông dữ liệu giữa các hệ thống', 'description' => null, 'max_score' => 5],
-                        ['name' => '2.4 Sản phẩm, giải pháp công nghệ có quy định kèm về quản trị dữ liệu trong hệ thống và tổ chức nới triển khai', 'description' => null, 'max_score' => 5],
+                        ['name' => '2.4 Sản phẩm, giải pháp công nghệ có quy định kèm về quản trị dữ liệu trong hệ thống và tổ chức nơi triển khai', 'description' => null, 'max_score' => 5],
                         // Tiêu chí 3: Hiệu quả trong triển khai sản phẩm, giải pháp công nghệ số trong nhà trường (20 điểm)
                         ['name' => '3.1 Nâng cao hiệu quả quản trị và quản lý nhà trường/ cơ sở giáo dục', 'description' => 'Tiết kiệm chi phí; Hiệu suất công việc; Quản lý chặt chẽ', 'max_score' => 4],
                         ['name' => '3.2 Quy trình ra quyết định dựa trên dữ liệu', 'description' => 'Hệ thống báo cáo, tổng hợp; Có ứng dụng phân tích dữ liệu trong các hoạt động nhà trường', 'max_score' => 4],
-                        ['name' => '3.3 Giảng dạy và học tập trên môi trường số chiếm tỷ trọng đáng kế', 'description' => 'Ứng dụng LMS/LCMS có tính năng AI trong giảng dạy và học tập; Các nền tảng, giải pháp học trực tuyến; Tài liệu, học liệu số; Có sử dụng AI trong các nội dung và hoạt động dạy và học', 'max_score' => 4],
+                        ['name' => '3.3 Giảng dạy và học tập trên môi trường số chiếm tỷ trọng đáng kể', 'description' => 'Ứng dụng LMS/LCMS có tính năng AI trong giảng dạy và học tập; Các nền tảng, giải pháp học trực tuyến; Tài liệu, học liệu số; Có sử dụng AI trong các nội dung và hoạt động dạy và học', 'max_score' => 4],
                         ['name' => '3.4 Hoạt động KHCN và ĐMST gia tăng trên nền tảng số', 'description' => 'Số lượng bài báo; Số lượng đề tài; Số lượng sáng kiến số', 'max_score' => 4],
                         ['name' => '3.5 Dịch vụ giáo dục và đào tạo được đổi mới và mang lại giá trị hơn', 'description' => 'Gia tăng học sinh, sinh viên, người học; Gia tăng và đa dạng hóa dịch vụ đào tạo, giáo dục; Cung cấp đa dạng dịch vụ giáo dục và đào tạo trên nền tảng số', 'max_score' => 4],
                         // Tiêu chí 4: Kế hoạch, chiến lược quảng bá và phát triển thị trường cho sản phẩm hay giải pháp (20 điểm)
@@ -121,9 +121,9 @@ class SeiAwards2026Seeder extends Seeder
                         ['name' => '4.2 Chiến lược quảng bá, phát triển thị trường cho sản phẩm/giải pháp của mình, trong đó:', 'description' => 'Truyền thông trong nước; Truyền thông quốc tế; Đại lý/đại diện trong nước; Đại lý/đại diện quốc tế', 'max_score' => 5],
                         ['name' => '4.3 Khả năng liên kết, hợp tác phát triển hệ sinh thái của sản phẩm/giải pháp gắn với các mô hình hợp tác PPP, APPP.', 'description' => null, 'max_score' => 5],
                         // Tiêu chí 5: Đánh giá kết quả, chiến lược phát triển của nhà trường khi triển khai ứng dụng sản phẩm, giải pháp số (20 điểm)
-                        ['name' => '5.1 Mức độ tăng trưởng tài chính nhờ ứng dụng sản phẩm, giải pháp trong năm 2024 so với 2023, trong đó:', 'description' => 'Tăng trưởng dưới 5%; Tăng trưởng từ 5-10%; Tăng trưởng trên 10%', 'max_score' => 5],
+                        ['name' => '5.1 Mức độ tăng trưởng tài chính nhờ ứng dụng sản phẩm, giải pháp trong năm 2025 so với 2024, trong đó:', 'description' => 'Tăng trưởng dưới 5%; Tăng trưởng từ 5-10%; Tăng trưởng trên 10%', 'max_score' => 5],
                         ['name' => '5.2 Mức độ tăng sự hài lòng của người làm việc khi đưa giải pháp, sản phẩm vào ứng dụng năm 2025 so với 2024, trong đó:', 'description' => 'Tăng trưởng dưới 5%; Tăng trưởng trên 5%', 'max_score' => 5],
-                        ['name' => '5.3 Mức độ tăng trưởng thu nhập của người lao động năm 2025 so với 2024, trong đó:', 'description' => 'Tăng trưởng dưới 5; Tăng trưởng trên 5%', 'max_score' => 5],
+                        ['name' => '5.3 Mức độ tăng trưởng thu nhập của người lao động năm 2025 so với 2024, trong đó:', 'description' => 'Tăng trưởng dưới 5%; Tăng trưởng trên 5%', 'max_score' => 5],
                         ['name' => '5.4 Mục tiêu tăng trưởng 5 năm sắp tới của doanh nghiệp cung cấp giải pháp, sản phẩm có khả năng hiện thực trong đó:', 'description' => 'Có kế hoạch tăng trưởng doanh thu dưới 5%/năm; Có kế hoạch tăng trưởng doanh thu 5-10%/năm; Có kế hoạch tăng trưởng doanh thu trên 10%/năm', 'max_score' => 5],
                     ],
                 ],
@@ -156,7 +156,7 @@ class SeiAwards2026Seeder extends Seeder
     {
         $program = Program::create([
             'id'          => $id,
-            'name'        => 'Biểu dương Sáng kiến Giáo dục thông minh - SEI Awards',
+            'name'        => 'Sáng kiến Giáo dục thông minh - SEI Awards',
             'year'        => self::YEAR,
             'abbr'        => self::ABBR,
             'color'       => '#0891b2',
