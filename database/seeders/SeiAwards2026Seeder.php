@@ -133,71 +133,123 @@ class SeiAwards2026Seeder extends Seeder
 
     public function run(): void
     {
-        // Never touch a program that already exists - it may have submissions and scores
-        $existing = Program::where('abbr', self::ABBR)->where('year', self::YEAR)->first();
-        if ($existing) {
-            $this->command?->warn("SEI Awards 2026 đã tồn tại ({$existing->id}), bỏ qua.");
+        $id = self::ABBR . '-' . self::YEAR;
+
+        if (Program::where('id', $id)->exists()) {
+            $this->command?->warn("SEI Awards 2026 đã tồn tại ({$id}), bỏ qua.");
 
             return;
         }
 
-        DB::transaction(function () {
-            // Same ID scheme as ProgramController::store
-            $next = Program::where('id', 'like', self::ABBR . '-%')
-                ->pluck('id')
-                ->map(fn ($id) => (int) substr(strrchr($id, '-'), 1))
-                ->max() + 1;
+        // Seeded earlier under the ABBR-N scheme (e.g. SEI-1): keep its data, only move it to the new ID
+        $old = Program::where('abbr', self::ABBR)->where('year', self::YEAR)->pluck('id');
+        if ($old->count() > 1) {
+            $this->command?->error('Có nhiều chương trình SEI 2026 (' . $old->implode(', ') . '), không tự đổi mã.');
 
-            $program = Program::create([
-                'id'          => self::ABBR . '-' . $next,
-                'name'        => 'Biểu dương Sáng kiến Giáo dục thông minh - SEI Awards',
-                'year'        => self::YEAR,
-                'abbr'        => self::ABBR,
-                'color'       => '#0891b2',
-                'status'      => 'active',
-                'deadline'    => '2026-11-05',
-                'description' => 'Chương trình Biểu dương Sáng kiến Giáo dục thông minh (Smart Education Initiative Awards - SEI Awards) năm 2026.',
-                'next_sub_id' => 1,
+            return;
+        }
+
+        DB::transaction(fn () => $old->isEmpty() ? $this->create($id) : $this->rename($old->first(), $id));
+    }
+
+    private function create(string $id): void
+    {
+        $program = Program::create([
+            'id'          => $id,
+            'name'        => 'Biểu dương Sáng kiến Giáo dục thông minh - SEI Awards',
+            'year'        => self::YEAR,
+            'abbr'        => self::ABBR,
+            'color'       => '#0891b2',
+            'status'      => 'active',
+            'deadline'    => '2026-11-05',
+            'description' => 'Chương trình Biểu dương Sáng kiến Giáo dục thông minh (Smart Education Initiative Awards - SEI Awards) năm 2026.',
+            'next_sub_id' => 1,
+        ]);
+
+        // Same ID scheme for categories and criteria as ProgramController::store
+        $crIdx = 1;
+        foreach (self::CATEGORIES as $ci => $cat) {
+            $catId = $program->id . '-C' . ($ci + 1);
+            ProgramCategory::create([
+                'id'         => $catId,
+                'program_id' => $program->id,
+                'parent_id'  => null,
+                'name'       => $cat['name'],
+                'color'      => $cat['color'],
+                'sort_order' => $ci,
             ]);
 
-            $crIdx = 1;
-            foreach (self::CATEGORIES as $ci => $cat) {
-                $catId = $program->id . '-C' . ($ci + 1);
+            foreach ($cat['sub_categories'] as $si => $sc) {
+                $scId = $catId . '-SC' . ($si + 1);
                 ProgramCategory::create([
-                    'id'         => $catId,
+                    'id'         => $scId,
                     'program_id' => $program->id,
-                    'parent_id'  => null,
-                    'name'       => $cat['name'],
+                    'parent_id'  => $catId,
+                    'name'       => $sc['name'],
                     'color'      => $cat['color'],
-                    'sort_order' => $ci,
+                    'sort_order' => $si,
                 ]);
 
-                foreach ($cat['sub_categories'] as $si => $sc) {
-                    $scId = $catId . '-SC' . ($si + 1);
-                    ProgramCategory::create([
-                        'id'         => $scId,
-                        'program_id' => $program->id,
-                        'parent_id'  => $catId,
-                        'name'       => $sc['name'],
-                        'color'      => $cat['color'],
-                        'sort_order' => $si,
+                foreach ($sc['criteria'] as $ki => $crit) {
+                    ProgramCriterion::create([
+                        'id'          => $program->id . '-cr' . $crIdx++,
+                        'program_id'  => $program->id,
+                        'category_id' => $scId,
+                        'name'        => $crit['name'],
+                        'description' => $crit['description'],
+                        'max_score'   => $crit['max_score'],
+                        'sort_order'  => $ki,
                     ]);
-
-                    foreach ($sc['criteria'] as $ki => $crit) {
-                        ProgramCriterion::create([
-                            'id'          => $program->id . '-cr' . $crIdx++,
-                            'program_id'  => $program->id,
-                            'category_id' => $scId,
-                            'name'        => $crit['name'],
-                            'description' => $crit['description'],
-                            'max_score'   => $crit['max_score'],
-                            'sort_order'  => $ki,
-                        ]);
-                    }
                 }
             }
+        }
 
-            $this->command?->info("Đã tạo chương trình {$program->id} với " . ($crIdx - 1) . ' tiêu chí.');
-        });
+        $this->command?->info("Đã tạo chương trình {$program->id} với " . ($crIdx - 1) . ' tiêu chí.');
+    }
+
+    /**
+     * Move a program and everything that points at it to a new ID.
+     * Rows are copied or repointed in an order the foreign keys accept, then the old rows are dropped.
+     */
+    private function rename(string $oldId, string $newId): void
+    {
+        // SEI-1-C1-SC1 -> SEI-2026-C1-SC1, SEI-1-cr7 -> SEI-2026-cr7
+        $swap = fn (?string $id) => $id !== null && str_starts_with($id, $oldId . '-')
+            ? $newId . substr($id, strlen($oldId))
+            : $id;
+
+        $program = (array) DB::table('programs')->where('id', $oldId)->first();
+        DB::table('programs')->insert(['id' => $newId] + $program);
+
+        // Top-level categories first, their sub-categories reference them
+        $categories = DB::table('program_categories')->where('program_id', $oldId)->get()
+            ->sortBy(fn ($cat) => $cat->parent_id !== null);
+        foreach ($categories as $cat) {
+            DB::table('program_categories')->insert([
+                'id'         => $swap($cat->id),
+                'program_id' => $newId,
+                'parent_id'  => $swap($cat->parent_id),
+            ] + (array) $cat);
+            DB::table('submissions')->where('category_id', $cat->id)->update(['category_id' => $swap($cat->id)]);
+        }
+
+        foreach (DB::table('program_criteria')->where('program_id', $oldId)->get() as $crit) {
+            DB::table('program_criteria')->where('id', $crit->id)->update([
+                'id'          => $swap($crit->id),
+                'program_id'  => $newId,
+                'category_id' => $swap($crit->category_id),
+            ]);
+            DB::table('score_details')->where('criterion_id', $crit->id)->update(['criterion_id' => $swap($crit->id)]);
+        }
+
+        DB::table('submissions')->where('program_id', $oldId)->update(['program_id' => $newId]);
+        DB::table('program_judges')->where('program_id', $oldId)->update(['program_id' => $newId]);
+
+        // Only the old category rows are left under the old program
+        DB::table('program_categories')->where('program_id', $oldId)->whereNotNull('parent_id')->delete();
+        DB::table('program_categories')->where('program_id', $oldId)->delete();
+        DB::table('programs')->where('id', $oldId)->delete();
+
+        $this->command?->info("Đã đổi mã chương trình {$oldId} thành {$newId}, giữ nguyên dữ liệu.");
     }
 }
