@@ -61,8 +61,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('programs/{program}/submissions/{submission}/assign/{judge}', [AssignmentController::class, 'unassign']);
 
     /* ── Scores ─────────────────────────────────────────────────── */
-    Route::get('programs/{program}/submissions/{submission}/scores', [ScoreController::class, 'index']);
-    Route::put('programs/{program}/submissions/{submission}/scores', [ScoreController::class, 'upsert']);
+    Route::get('programs/{program}/submissions/{submission}/scores',              [ScoreController::class, 'index']);
+    Route::put('programs/{program}/submissions/{submission}/scores',              [ScoreController::class, 'upsert']);
+    Route::delete('programs/{program}/submissions/{submission}/scores/{judge}',   [ScoreController::class, 'reset']);
+    Route::delete('programs/{program}/judges/{judge}/scores',                     [ScoreController::class, 'resetAllByJudge']);
 
     /* ── Dashboard stats ────────────────────────────────────────── */
     Route::get('programs/{program}/dashboard', [DashboardController::class, 'show']);

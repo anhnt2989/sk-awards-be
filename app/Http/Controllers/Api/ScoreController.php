@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Judge;
 use App\Models\Program;
 use App\Models\Score;
 use App\Models\ScoreDetail;
@@ -96,6 +97,49 @@ class ScoreController extends Controller
 
             return response()->json($this->format($score, $score->submission->program));
         });
+    }
+
+    /** Reset (delete) a judge's score for a submission — admin only */
+    public function reset(Request $request, Program $program, Submission $submission, Judge $judge): JsonResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403, 'Chỉ quản trị viên mới có thể reset điểm.');
+        abort_unless($submission->program_id === $program->id, 404);
+
+        $score = Score::where('submission_id', $submission->id)
+            ->where('judge_id', $judge->id)
+            ->first();
+
+        abort_unless($score, 404, 'Không tìm thấy điểm của giám khảo này.');
+
+        DB::transaction(function () use ($score) {
+            $score->details()->delete();
+            $score->delete();
+        });
+
+        return response()->json(null, 204);
+    }
+
+    /** Reset (delete) all submitted scores by a judge in a program — admin only */
+    public function resetAllByJudge(Request $request, Program $program, Judge $judge): JsonResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403, 'Chỉ quản trị viên mới có thể reset điểm.');
+
+        $submissionIds = $program->submissions()->pluck('id');
+
+        $scores = Score::whereIn('submission_id', $submissionIds)
+            ->where('judge_id', $judge->id)
+            ->where('is_submitted', true)
+            ->get();
+
+        abort_if($scores->isEmpty(), 404, 'Không tìm thấy điểm đã nộp của giám khảo này trong chương trình.');
+
+        DB::transaction(function () use ($scores) {
+            $scoreIds = $scores->pluck('id');
+            ScoreDetail::whereIn('score_id', $scoreIds)->delete();
+            Score::whereIn('id', $scoreIds)->delete();
+        });
+
+        return response()->json(['deleted' => $scores->count()]);
     }
 
     private function format(Score $score, Program $program): array
